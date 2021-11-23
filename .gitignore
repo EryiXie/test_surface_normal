@@ -130,7 +130,10 @@ dmypy.json
 
 # pytorch
 *.pth
+*.tar
 weights/
 logs/
 .vscode/
 .idea/
+test/
+*.png

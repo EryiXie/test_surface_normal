@@ -24,10 +24,10 @@ class Compose(object):
     def __init__(self, transforms):
         self.transforms = transforms
 
-    def __call__(self, img, depth=None):
+    def __call__(self, img, normal=None):
         for t in self.transforms:
-            img, depth = t(img, depth)
-        return img, depth
+            img, normal = t(img, normal)
+        return img, normal
 
 
 class Resize_and_Pad(object):
@@ -42,26 +42,26 @@ class Resize_and_Pad(object):
         self.resize_gt = resize_gt
         self.max_size = cfg.max_size
     
-    def __call__(self, image, depth):
+    def __call__(self, image, normal):
         img_h, img_w, channels = image.shape
         
         if img_h != self.max_size or img_w != self.max_size:
             height, width = (self.max_size, int(img_w * (self.max_size / img_h))) if img_h > img_w  else (int(img_h * (self.max_size / img_w)), self.max_size)
 
             image = cv2.resize(image, (width, height))
-            depth = cv2.resize(depth, (width, height))
+            normal = cv2.resize(normal, (width, height))
 
             expand_image = np.zeros((self.max_size, self.max_size, channels), dtype=image.dtype)
             expand_image[:, :, :] = self.mean
             expand_image[:height, :width] = image
 
-            expand_depth = np.zeros((self.max_size, self.max_size), dtype=depth.dtype)
+            expand_normal = np.zeros((self.max_size, self.max_size), dtype=normal.dtype)
             # TODO: should we define a mean here? Maybe we should not even use padding.
-            expand_depth[:height, :width] = depth
+            expand_normal[:height, :width] = normal
             
-            return expand_image, expand_depth
+            return expand_image, expand_normal
         else:
-            return image, depth
+            return image, normal
 
 
 class Pad(object):
@@ -77,7 +77,7 @@ class Pad(object):
         self.height = height
         self.pad_gt = pad_gt
 
-    def __call__(self, image, depth):
+    def __call__(self, image, normal):
         im_h, im_w, channels = image.shape
 
         expand_image = np.zeros(
@@ -86,10 +86,10 @@ class Pad(object):
         expand_image[:, :, :] = self.mean
         expand_image[:im_h, :im_w] = image
 
-        expand_depth = np.zeros((self.height, self.width), dtype=depth.dtype)
-        expand_depth[:im_h, :im_w] = depth
+        expand_normal = np.zeros((self.height, self.width), dtype=normal.dtype)
+        expand_normal[:im_h, :im_w] = normal
 
-        return expand_image, expand_depth
+        return expand_image, expand_normal
 
 
 class Resize(object):
@@ -100,14 +100,14 @@ class Resize(object):
         self.resize_gt = resize_gt
         self.max_size = cfg.max_size
 
-    def __call__(self, image, depth):
+    def __call__(self, image, normal):
         img_h, img_w, _ = image.shape
 
         if img_h != self.max_size or img_w != self.max_size:
             width, height = self.max_size, self.max_size
             image = cv2.resize(image, (width, height))
-            depth = cv2.resize(depth, (width, height))
-        return image, depth
+            normal = cv2.resize(normal, (width, height))
+        return image, normal
 
 
 class RandomSaturation(object):
@@ -117,11 +117,11 @@ class RandomSaturation(object):
         assert self.upper >= self.lower, "contrast upper must be >= lower."
         assert self.lower >= 0, "contrast lower must be non-negative."
 
-    def __call__(self, image, depth=None):
+    def __call__(self, image, normal=None):
         if random.randint(2):
             image[:, :, 1] *= random.uniform(self.lower, self.upper)
 
-        return image, depth
+        return image, normal
 
 
 class RandomHue(object):
@@ -129,12 +129,12 @@ class RandomHue(object):
         assert delta >= 0.0 and delta <= 360.0
         self.delta = delta
 
-    def __call__(self, image, depth=None):
+    def __call__(self, image, normal=None):
         if random.randint(2):
             image[:, :, 0] += random.uniform(-self.delta, self.delta)
             image[:, :, 0][image[:, :, 0] > 360.0] -= 360.0
             image[:, :, 0][image[:, :, 0] < 0.0] += 360.0
-        return image, depth
+        return image, normal
 
 
 class RandomLightingNoise(object):
@@ -143,14 +143,14 @@ class RandomLightingNoise(object):
                       (1, 0, 2), (1, 2, 0),
                       (2, 0, 1), (2, 1, 0))
 
-    def __call__(self, image, depth=None):
+    def __call__(self, image, normal=None):
         # Don't shuffle the channels please, why would you do this
 
         # if random.randint(2):
         #     swap = self.perms[random.randint(len(self.perms))]
         #     shuffle = SwapChannels(swap)  # shuffle channels
         #     image = shuffle(image)
-        return image, depth
+        return image, normal
 
 
 class ConvertColor(object):
@@ -158,14 +158,14 @@ class ConvertColor(object):
         self.transform = transform
         self.current = current
 
-    def __call__(self, image, depth=None):
+    def __call__(self, image, normal=None):
         if self.current == 'BGR' and self.transform == 'HSV':
             image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         elif self.current == 'HSV' and self.transform == 'BGR':
             image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
         else:
             raise NotImplementedError
-        return image, depth
+        return image, normal
 
 
 class RandomContrast(object):
@@ -176,11 +176,11 @@ class RandomContrast(object):
         assert self.lower >= 0, "contrast lower must be non-negative."
 
     # expects float image
-    def __call__(self, image, depth=None):
+    def __call__(self, image, normal=None):
         if random.randint(2):
             alpha = random.uniform(self.lower, self.upper)
             image *= alpha
-        return image, depth
+        return image, normal
 
 class RandomBrightness(object):
     def __init__(self, delta=32):
@@ -188,11 +188,11 @@ class RandomBrightness(object):
         assert delta <= 255.0
         self.delta = delta
 
-    def __call__(self, image, depth=None):
+    def __call__(self, image, normal=None):
         if random.randint(2):
             delta = random.uniform(-self.delta, self.delta)
             image += delta
-        return image, depth
+        return image, normal
 
 
 class ToCV2Image(object):
@@ -206,30 +206,30 @@ class ToTensor(object):
         return torch.from_numpy(cvimage.astype(np.float32)).permute(2, 0, 1)
 
 class RandomMirror(object):
-    def __call__(self, image, depth):
+    def __call__(self, image, normal):
         _, width, _ = image.shape
         if random.randint(2):
             image = image[:, ::-1]
-            depth = depth[:, ::-1] # TODO: Is 1 channel the same as 3 channels? 
-        return image, depth
+            normal = normal[:, ::-1] # TODO: Is 1 channel the same as 3 channels? 
+        return image, normal
 
 
 class RandomFlip(object):
-    def __call__(self, image, depth):
+    def __call__(self, image, normal):
         height , _ , _ = image.shape
         if random.randint(2):
             image = image[::-1, :]
-            depth = depth[::-1, :]
-        return image, depth
+            normal = normal[::-1, :]
+        return image, normal
 
 
 class RandomRot90(object):
-    def __call__(self, image, depth):
+    def __call__(self, image, normal):
         old_height , old_width , _ = image.shape
         k = random.randint(4)
         image = np.rot90(image,k)
-        depth = np.rot90(depth,k)
-        return image, depth
+        normal = np.rot90(normal,k)
+        return image, normal
 
 
 class SwapChannels(object):
@@ -271,15 +271,15 @@ class PhotometricDistort(object):
         self.rand_brightness = RandomBrightness()
         self.rand_light_noise = RandomLightingNoise()
 
-    def __call__(self, image, depth):
+    def __call__(self, image, normal):
         im = image.copy()
-        im, depth = self.rand_brightness(im, depth)
+        im, normal = self.rand_brightness(im, normal)
         if random.randint(2):
             distort = Compose(self.pd[:-1])
         else:
             distort = Compose(self.pd[1:])
-        im, depth = distort(im, depth)
-        return self.rand_light_noise(im, depth)
+        im, normal = distort(im, normal)
+        return self.rand_light_noise(im, normal)
 
 
 class BackboneTransform(object):
@@ -300,10 +300,10 @@ class BackboneTransform(object):
         self.channel_map = {c: idx for idx, c in enumerate(in_channel_order)}
         self.channel_permutation = [self.channel_map[c] for c in transform.channel_order]
 
-    def __call__(self, img, depth):
+    def __call__(self, img, normal):
 
         img = img.astype(np.float32)
-        depth = depth.astype(np.float32)
+        normal = normal.astype(np.float32)
 
         
         if self.transform.normalize:
@@ -317,7 +317,7 @@ class BackboneTransform(object):
         img = img[:, :, self.channel_permutation]
         
 
-        return img.astype(np.float32), depth.astype(np.float32)
+        return img.astype(np.float32), normal.astype(np.float32)
 
 
 class RandomMotionBlur(object):
@@ -329,7 +329,7 @@ class RandomMotionBlur(object):
         assert self.lower_degree < self.upper_degree
         assert self.angle >= 0
 
-    def __call__(self, image, depth):
+    def __call__(self, image, normal):
 
         if random.randint(2) :
             degree = random.randint(self.lower_degree, self.upper_degree)
@@ -346,9 +346,9 @@ class RandomMotionBlur(object):
             cv2.normalize(blurred, blurred, 0, 255, cv2.NORM_MINMAX)
             blurred = np.array(blurred, dtype=np.uint8)
 
-            return blurred, depth
+            return blurred, normal
         else:
-            return image, depth
+            return image, normal
 
 
 class RandomGaussianNoise(object):
@@ -356,7 +356,7 @@ class RandomGaussianNoise(object):
         self.mean = mean
         self.var = var
 
-    def __call__(self, image, depth):
+    def __call__(self, image, normal):
 
         if random.randint(2) :
             #cvimage = image.cpu().numpy().astype(np.float32).transpose((1, 2, 0))
@@ -371,9 +371,9 @@ class RandomGaussianNoise(object):
             out = np.clip(out, low_clip, 1.0)
             out = np.uint8(out * 255)
             #tensorimage = torch.from_numpy(out.astype(np.float32)).permute(2, 0, 1)
-            return out, depth
+            return out, normal
         else:
-            return image, depth
+            return image, normal
 
 
 ###########################################
@@ -381,8 +381,8 @@ class RandomGaussianNoise(object):
 ##########################################
 
 
-def do_nothing(img=None, depth=None):
-    return img, depth
+def do_nothing(img=None, normal=None):
+    return img, normal
 
 
 def enable_if(condition, obj):
@@ -395,16 +395,16 @@ class SSDAugmentation(object):
     def __init__(self, mean=MEANS, std=STD):
         self.augment = Compose([
             enable_if(cfg.augment.photometric_distort, PhotometricDistort()),
-            enable_if(cfg.augment.random_mirror, RandomMirror()),
-            enable_if(cfg.augment.random_flip, RandomFlip()),
-            enable_if(cfg.augment.random_rot90, RandomRot90()),
-            enable_if(cfg.augment.gaussian_noise, RandomGaussianNoise()),
+            #enable_if(cfg.augment.random_mirror, RandomMirror()),
+            #enable_if(cfg.augment.random_flip, RandomFlip()),
+            #enable_if(cfg.augment.random_rot90, RandomRot90()),
+            #enable_if(cfg.augment.gaussian_noise, RandomGaussianNoise()),
             Resize(resize_gt=True),
             BackboneTransform(cfg.backbone.transform, mean, std, 'BGR')
         ])
 
-    def __call__(self, img, depth=None):
-        return self.augment(img, depth)
+    def __call__(self, img, normal=None):
+        return self.augment(img, normal)
 
 class BaseTransform(object):
     """ Transorm to be used when evaluating. """
@@ -415,8 +415,8 @@ class BaseTransform(object):
             BackboneTransform(cfg.backbone.transform, mean, std, 'BGR')
         ])
 
-    def __call__(self, img, depth=None):
-        return self.augment(img, depth)
+    def __call__(self, img, normal=None):
+        return self.augment(img, normal)
 
 
 class FastBaseTransform(torch.nn.Module):

@@ -1,15 +1,10 @@
 import os
 import os.path as osp
-import sys
 import torch
-from torch.functional import split
 import torch.utils.data as data
 import torch.nn.functional as F
-import torchvision.transforms as transforms
 import cv2
-import glob
 import numpy as np
-import random
 
 class HolicityDataset(data.Dataset):
     """ 
@@ -43,7 +38,6 @@ class HolicityDataset(data.Dataset):
         H, W, _ = img.shape
 
         normal_path = path.replace("image-v1", "normal-v1").replace("_imag.jpg", "_nrml.npz")
-        #normal = cv2.imread(normal_path, cv2.IMREAD_UNCHANGED).astype(np.float32)
         normal = np.load(normal_path)['normal'].astype(np.float32)
         if self.transform is not None:
             img, normal = self.transform(img, normal)
@@ -64,8 +58,23 @@ class HolicityDataset(data.Dataset):
         Return:
             cv2 img
         '''
-        file_name = self.ids[index]
+        file_name = os.path.join(self.root, 'image-v1', self.ids[index].strip('\n') +  "_imag.jpg")
         return cv2.imread(osp.join(self.root, file_name), cv2.IMREAD_COLOR)
+    
+    def pull_normal(self, index):
+        '''Returns the original image object at index in PIL form
+
+        Note: not using self.__getitem__(), as any transformations passed in
+        could mess up this functionality.
+
+        Argument:
+            index (int): index of img to show
+        Return:
+            numpy np.double
+        '''
+        path = os.path.join(self.root, 'normal-v1', self.ids[index].strip('\n') +  "_nrml.npz")
+        normal = np.load(path)['normal'].astype(np.float32)
+        return normal
 
 def enforce_size(img, normal, new_w, new_h):
     """ Ensures that the image is the given size without distorting aspect ratio. """
@@ -103,13 +112,17 @@ def enforce_size(img, normal, new_w, new_h):
 
 if __name__ == "__main__":
     from data.config import cfg
-    dataset = HolicityDataset(image_path=cfg.dataset.valid_images, transform=None)
+    from data.augmentations import BaseTransform, MEANS
+    dataset = HolicityDataset(root=cfg.dataset.root_path,
+                            split_file=cfg.dataset.valid_split, 
+                                    transform=BaseTransform(MEANS))
 
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
 
     for idx, data_ele in enumerate(dataloader):
         image, normal = data_ele
         print(image.shape, normal.shape)
+        print(image.dtype, normal.dtype)
         if idx > 3:
             break
 

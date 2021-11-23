@@ -13,10 +13,11 @@ class Loss(nn.Module):
         super(Loss, self).__init__()
 
         # Losses funcs
-        self.normal_loss = CossimLoss()
+        #self.normal_loss = CossimLoss()
+        self.normal_loss = nn.L1Loss()
 
     def forward(self, net, normal_preds, gt_normals):
-        # depth loss
+        # normal loss
         gt_normals = Variable(gt_normals, requires_grad=False)
         #valid_mask = (gt_normals.sum() > 0) # All ground truth with 0 value is considered as invalid/non-informative pixels
 
@@ -29,8 +30,7 @@ class CossimLoss(nn.Module):
         super(CossimLoss, self).__init__()
     
     def forward(self, normal_preds, gt_normals):
-        
-        cossim = torch.abs(torch.nn.functional.cosine_similarity(normal_preds, gt_normals))
+        cossim = torch.nn.functional.cosine_similarity(normal_preds, gt_normals)
         normal_error = (1 - cossim).mean()
         return normal_error
 

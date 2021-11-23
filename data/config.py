@@ -83,7 +83,8 @@ class Config(object):
 
 # ----------------------- DATASETS ----------------------- #
 
-dataset_base = Config({
+dataset_base = Config(
+    {
     'name': 'Holicity Dataset',
 
     # Training images and annotations
@@ -95,7 +96,8 @@ dataset_base = Config({
 
     # Whether or not to load GT. If this is False, eval.py quantitative evaluation won't work.
     'has_gt': True,
-})
+}
+)
 
 
 # ----------------------- DATA AUGMENTATION ---------------- #
@@ -192,15 +194,15 @@ NormalNet_base_config = Config(
         
         # Training Settings
         'max_iter': 57000,
-        'lr_steps': (2000, 45000),
+        'lr_steps': (28500, 45600),
         # dw' = momentum * dw - lr * (grad + decay * w)
-        'lr': 1e-3,
+        'lr': 1e-4,
         'momentum': 0.9,
         'decay': 5e-4,
 
         'freeze_bn': False,
         # Warm Up Learning Rate
-        'lr_warmup_init': 1e-4,
+        'lr_warmup_init': 1e-5,
         'lr_warmup_until': 500,
         # For each lr step, what to multiply the lr with
         'gamma': 0.1,

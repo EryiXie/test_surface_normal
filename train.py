@@ -67,7 +67,7 @@ parser.add_argument('--gamma', default=None, type=float,
 # You might not need customize these
 parser.add_argument('--num_workers', default=2, type=int,
                     help='Number of workers used in dataloading')
-parser.add_argument('--save_interval', default=5700, type=int,
+parser.add_argument('--save_interval', default=11400, type=int,
                     help='The number of iterations between saving the model.')
 parser.add_argument('--keep_latest', dest='keep_latest', action='store_true',
                     help='Only keep the latest checkpoint instead of each one.')

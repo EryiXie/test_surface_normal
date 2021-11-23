@@ -88,7 +88,7 @@ class NormalDecoder_2(nn.Module):
         self.normal_pred = nn.Sequential(
             nn.ReflectionPad2d(1),
             nn.Conv2d(128, self.num_output_channels, kernel_size=3, stride=1, padding=0),
-            nn.Softplus()
+            nn.Tanh()
         )
         
     def forward(self, feature_maps):
@@ -100,9 +100,8 @@ class NormalDecoder_2(nn.Module):
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
         x = self.normal_pred(x)
         x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
-        x = F.normalize(x, p=2, dim=1)
+        x = F.normalize(x, p=2, dim=1)#, eps=1e-3)
         return x
-
 
 
 class NormalDecoder(nn.Module):
@@ -174,7 +173,7 @@ class NormalDecoder(nn.Module):
         self.normal_pred = nn.Sequential(
             nn.ReflectionPad2d(1),
             nn.Conv2d(64, self.num_output_channels, kernel_size=3, stride=1, padding=0),
-            nn.Softplus()
+            nn.Tanh()
         )
         
     def forward(self, feature_maps):

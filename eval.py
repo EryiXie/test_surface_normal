@@ -6,7 +6,6 @@
 import argparse
 import random
 import os
-from collections import OrderedDict
 import numpy as np
 import cv2
 import math
@@ -55,16 +54,19 @@ def tensorborad_visual_log(epoch, iteration, net: TestNet, dataset, writer: Summ
         # Main eval loop
         for it, image_idx in enumerate(dataset_indices):
             image, gt_normal = dataset.pull_item(image_idx)
+            image_ori = dataset.pull_image(image_idx)
             batch = Variable(image.unsqueeze(0)).cuda()
 
             batched_result = net(batch) # if batch_size = 1, result = batched_result[0]
-            norm_np = batched_result[0].squeeze()#.cpu().numpy()
-            norm_draw = (((norm_np + 1) / 2) * 65535).astype(np.uint16)
-            writer.add_image("Predict Normal Map: {}".format(it), norm_draw, iteration, dataformats='HWC')
+            norm_np = batched_result[0].squeeze().permute(1,2,0).cpu().numpy()
+            norm_draw = (((norm_np + 1) / 2) * 255).astype(np.uint8)
+            gt_norm_normalize_np = gt_normal.squeeze().permute(1,2,0).cpu().numpy()
+            gt_norm_normalize_draw = (((gt_norm_normalize_np + 1) / 2) * 255).astype(np.uint8)
 
-            gt_norm_normalize_np = gt_normal.squeeze()#.cpu().numpy()
-            gt_norm_normalize_draw = (((gt_norm_normalize_np + 1) / 2) * 255).astype(np.uint16)
-            writer.add_image("Predict Normal Map: {}".format(it), gt_norm_normalize_draw, iteration, dataformats='HWC')
+            image_ori = cv2.cvtColor(image_ori, cv2.COLOR_BGR2RGB)
+            writer.add_image("{}/RGB/GT".format(it), image_ori, iteration, dataformats='HWC')
+            writer.add_image("{}/Normal/GT".format(it), gt_norm_normalize_draw, iteration, dataformats='HWC')
+            writer.add_image("{}/Normal/Pred".format(it), norm_draw, iteration, dataformats='HWC')
 
     except KeyboardInterrupt:
         print('Stopping...')
@@ -112,10 +114,6 @@ def evaluate(net: TestNet, dataset, during_training=False):
                 progress_bar.set_val(it+1)
                 print('\rProcessing Images  %s %6d / %6d (%5.2f%%)    %5.2f fps        '
                       % (repr(progress_bar), it+1, eval_nums, progress, fps), end='')
-            
-            '''
-            print normal and semantic metrics here
-            '''
         infos = np.asarray(infos, dtype=np.double)
         infos = infos.sum(axis=0)/infos.shape[0]
         print()
