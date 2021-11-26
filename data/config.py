@@ -87,7 +87,7 @@ dataset_base = Config(
     'name': 'Holicity Dataset',
 
     # Training images and annotations
-    'root_path': '/home/xie/Documents/datasets/holicity',
+    'root_path': './holicity',
     'train_split': 'holicity_train.tar',
 
     # Validation images and annotations.

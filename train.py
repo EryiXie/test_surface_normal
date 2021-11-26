@@ -5,6 +5,7 @@ import argparse
 import datetime
 import numpy as np
 import cv2
+import webdataset as wds
 
 import torch
 import torch.nn as nn
@@ -13,7 +14,7 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 
 from data.config import cfg, MEANS, set_cfg, set_dataset
-from data.web_dataset import HolicityDatasetParser, HolicityDataset
+from data.web_dataset import HolicityDataset
 from data.augmentations import SSDAugmentation, BaseTransform
 from utils.utils import SavePath, MovingAverage
 from utils import timer
@@ -265,10 +266,9 @@ def train():
     epoch_size = cfg.dataset.train_length // args.batch_size
     num_epochs = math.ceil(cfg.max_iter / epoch_size)
     step_index = 0
-
-    data_loader = torch.utils.data.DataLoader(dataset.batched(batchsize=args.batch_size), batch_size=None,
-                                  num_workers=args.num_workers)#, shuffle=True,pin_memory=True)
     
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, num_workers=args.num_workers)
+   
     save_path = lambda epoch, iteration: SavePath(cfg.name, epoch, iteration).get_path(root=args.save_folder)
     time_avg = MovingAverage()
 
@@ -281,6 +281,7 @@ def train():
     # try-except so you can use ctrl+c to save early and stop training
     try:
         for epoch in range(num_epochs):
+            os.environ['WDS_EPOCH'] = str(epoch)
             # Resume from start_iter
             if (epoch+1)*epoch_size < iteration:
                 continue

@@ -18,7 +18,7 @@ from torch.autograd import Variable
 from tensorboardX import SummaryWriter
 
 from normal_net import TestNet
-from data.datasets import HolicityDataset
+from data.web_dataset import HolicityDataset
 from data.config import set_cfg, set_dataset, cfg, MEANS, STD
 from data.augmentations import BaseTransform
 from utils.utils import MovingAverage, ProgressBar, SavePath
