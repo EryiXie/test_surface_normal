@@ -13,8 +13,7 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 
 from data.config import cfg, MEANS, set_cfg, set_dataset
-#from data.datasets import HolicityDataset, enforce_size
-from webdataset_decode import HolicityDatasetParser, HolicityDataset
+from data.web_dataset import HolicityDatasetParser, HolicityDataset
 from data.augmentations import SSDAugmentation, BaseTransform
 from utils.utils import SavePath, MovingAverage
 from utils import timer

@@ -101,6 +101,25 @@ dataset_base = Config(
 }
 )
 
+dataset_server = Config(
+    {
+    'name': 'Holicity Dataset',
+
+    # Training images and annotations
+    'root_path': '/netscratch/xie/holicity',
+    'train_split': 'holicity_train.tar',
+
+    # Validation images and annotations.
+    'valid_split': 'holicity_valid.tar',
+
+    # Whether or not to load GT. If this is False, eval.py quantitative evaluation won't work.
+    'has_gt': True,
+
+    'train_length': 45600,
+    'valid_length': 2496,
+}
+)
+
 
 # ----------------------- DATA AUGMENTATION ---------------- #
 
