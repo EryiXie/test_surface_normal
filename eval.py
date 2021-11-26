@@ -19,7 +19,7 @@ from tensorboardX import SummaryWriter
 
 from normal_net import TestNet
 from data.datasets import HolicityDataset
-from data.config import set_cfg, set_dataset, cfg, MEANS
+from data.config import set_cfg, set_dataset, cfg, MEANS, STD
 from data.augmentations import BaseTransform
 from utils.utils import MovingAverage, ProgressBar, SavePath
 from utils import timer
@@ -46,15 +46,20 @@ normal_metrics = ["mean", "median", "rmse", "a1", "a2", "a3"]
 
 def tensorborad_visual_log(epoch, iteration, net: TestNet, dataset, writer: SummaryWriter):
     eval_nums = 5
-    dataset_indices = list(range(len(dataset)))
+    dataset_indices = list(range(cfg.dataset.valid_length))
     random.shuffle(dataset_indices)
     dataset_indices = dataset_indices[:eval_nums]
 
+    means = torch.Tensor(MEANS).float().cuda()[None, :, None, None]
+    std = torch.Tensor( STD ).float().cuda()[None, :, None, None]
+
+    it = 0
     try:
         # Main eval loop
-        for it, image_idx in enumerate(dataset_indices):
-            image, gt_normal = dataset.pull_item(image_idx)
-            image_ori = dataset.pull_image(image_idx)
+        for data in dataset:
+            image, gt_normal = data
+            image_ori = image[(2, 1, 0), :, :].contiguous()
+            image_ori = (image_ori * std.to(image.device) + means.to(image.device)).squeeze().permute(1,2,0).cpu().numpy().astype(np.uint8)
             batch = Variable(image.unsqueeze(0)).cuda()
 
             batched_result = net(batch) # if batch_size = 1, result = batched_result[0]
@@ -63,33 +68,38 @@ def tensorborad_visual_log(epoch, iteration, net: TestNet, dataset, writer: Summ
             gt_norm_normalize_np = gt_normal.squeeze().permute(1,2,0).cpu().numpy()
             gt_norm_normalize_draw = (((gt_norm_normalize_np + 1) / 2) * 255).astype(np.uint8)
 
-            image_ori = cv2.cvtColor(image_ori, cv2.COLOR_BGR2RGB)
+            #image_ori = cv2.cvtColor(image_ori, cv2.COLOR_BGR2RGB)
             writer.add_image("{}/RGB/GT".format(it), image_ori, iteration, dataformats='HWC')
             writer.add_image("{}/Normal/GT".format(it), gt_norm_normalize_draw, iteration, dataformats='HWC')
             writer.add_image("{}/Normal/Pred".format(it), norm_draw, iteration, dataformats='HWC')
+            it = it + 1
+            if it > 5:
+                break
 
     except KeyboardInterrupt:
         print('Stopping...')
 
 def evaluate(net: TestNet, dataset, during_training=False):
     frame_times = MovingAverage()
-    eval_nums = len(dataset) if args.max_images < 0 else min(args.max_images, len(dataset))
+    eval_nums = cfg.dataset.valid_length if args.max_images < 0 else min(args.max_images, cfg.dataset.valid_length)
     progress_bar = ProgressBar(30, eval_nums)
 
     print()
 
-    dataset_indices = list(range(len(dataset)))
-    random.shuffle(dataset_indices)
-    dataset_indices = dataset_indices[:eval_nums]
+    #dataset_indices = list(range(cfg.dataset.valid_length))
+    #random.shuffle(dataset_indices)
+    #dataset_indices = dataset_indices[:eval_nums]
 
     infos = []
-
+    it = 0
     try:
         # Main eval loop
-        for it, image_idx in enumerate(dataset_indices):
+        #for it, image_idx in enumerate(dataset_indices):
+        for data in dataset:
             timer.reset()
 
-            image, gt_normal = dataset.pull_item(image_idx)
+            #image, gt_normal = dataset.pull_item(image_idx)
+            image, gt_normal = data
             batch = Variable(image.unsqueeze(0)).cuda()
 
             batched_result = net(batch) # if batch_size = 1, result = batched_result[0]
@@ -114,6 +124,9 @@ def evaluate(net: TestNet, dataset, during_training=False):
                 progress_bar.set_val(it+1)
                 print('\rProcessing Images  %s %6d / %6d (%5.2f%%)    %5.2f fps        '
                       % (repr(progress_bar), it+1, eval_nums, progress, fps), end='')
+            it = it + 1
+            if it >= eval_nums:
+                break
         infos = np.asarray(infos, dtype=np.double)
         infos = infos.sum(axis=0)/infos.shape[0]
         print()

@@ -5,19 +5,19 @@ import torch.utils.data as data
 import torch.nn.functional as F
 import cv2
 import numpy as np
+from .config import cfg
 
 class HolicityDataset(data.Dataset):
     """ 
     """
-    def __init__(self, root, split_file, transform=None,
-                 dataset_name=None, has_gt=True):
+    def __init__(self, root=cfg.dataset.root_path, 
+                    split_file=cfg.dataset.valid_split, 
+                    transform=None):
         self.root = root
         f = open(os.path.join(root, split_file), 'r')
         self.ids = f.readlines()
         f.close()
         self.transform = transform
-        self.name = dataset_name
-        self.has_gt = has_gt
     
     def __getitem__(self, index):
         """

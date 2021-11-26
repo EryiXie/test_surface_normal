@@ -13,7 +13,7 @@ class TestNet(nn.Module):
 
         self.backbone = construct_backbone(cfg.backbone)
         self.freeze_bn()
-        self.normal_decoder = NormalDecoder_2()
+        self.normal_decoder = NormalDecoder()
 
     def forward(self, x):
         with timer.env("backbone"):
@@ -50,9 +50,9 @@ class TestNet(nn.Module):
                 module.weight.requires_grad = enable
                 module.bias.requires_grad = enable
 
-class NormalDecoder_2(nn.Module):
+class NormalDecoder(nn.Module):
     def __init__(self):
-        super(NormalDecoder_2, self).__init__()
+        super(NormalDecoder, self).__init__()
         self.num_output_channels = 3
 
 
@@ -98,91 +98,6 @@ class NormalDecoder_2(nn.Module):
         x = self.deconv2(torch.cat([feats[1], x], dim=1))
         x = self.deconv3(torch.cat([feats[2], x], dim=1))
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
-        x = self.normal_pred(x)
-        x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
-        x = F.normalize(x, p=2, dim=1)#, eps=1e-3)
-        return x
-
-
-class NormalDecoder(nn.Module):
-
-    def __init__(self):
-        super(NormalDecoder, self).__init__()
-
-        self.num_output_channels = 3
-
-        self.latlayer1 = nn.Conv2d(2048, 1024, kernel_size=1, stride=1, padding=0)
-        self.latlayer2 = nn.Conv2d(1024, 512, kernel_size=1, stride=1, padding=0)
-        self.latlayer3 = nn.Conv2d( 512, 256, kernel_size=1, stride=1, padding=0)
-        self.latlayer4 = nn.Conv2d( 256, 128, kernel_size=1, stride=1, padding=0)
-
-        self.conv1 = nn.Sequential(
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(1024, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True)
-        )
-        self.conv2 = nn.Sequential(
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(512, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True)
-        )
-        self.conv3 = nn.Sequential(
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(256, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True)
-        )
-        self.conv4 = nn.Sequential(
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(128, 128, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(128, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True)
-        )
-
-        self.deconv1 = nn.Sequential(
-            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(1024, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True)
-        )
-        self.deconv2 = nn.Sequential(
-            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(1536, 768, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(768, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True)
-        )
-        self.deconv3 = nn.Sequential(
-            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(1024, 512, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(512, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True)
-        )
-        self.deconv4 = nn.Sequential(
-            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(640, 64, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(64, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True)
-        )
-        
-        self.normal_pred = nn.Sequential(
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(64, self.num_output_channels, kernel_size=3, stride=1, padding=0),
-            nn.Tanh()
-        )
-        
-    def forward(self, feature_maps):
-        feats = list(reversed(feature_maps))
-        
-        x = self.deconv1(self.conv1(self.latlayer1(feats[0])))
-        x = self.deconv2(torch.cat([self.conv2(self.latlayer2(feats[1])), x], dim=1))
-        x = self.deconv3(torch.cat([self.conv3(self.latlayer3(feats[2])), x], dim=1))
-        x = self.deconv4(torch.cat([self.conv4(self.latlayer4(feats[3])), x], dim=1))
         x = self.normal_pred(x)
         x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
         x = F.normalize(x, p=2, dim=1)

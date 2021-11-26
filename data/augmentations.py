@@ -56,7 +56,6 @@ class Resize_and_Pad(object):
             expand_image[:height, :width] = image
 
             expand_normal = np.zeros((self.max_size, self.max_size), dtype=normal.dtype)
-            # TODO: should we define a mean here? Maybe we should not even use padding.
             expand_normal[:height, :width] = normal
             
             return expand_image, expand_normal

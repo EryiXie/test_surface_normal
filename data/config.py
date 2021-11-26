@@ -3,7 +3,6 @@
     Licensed under The MIT License [see LICENSE for details]
 """
 
-from data.datasets import HolicityDataset
 from models.backbone import ResNetBackbone
 import torch
 
@@ -89,13 +88,16 @@ dataset_base = Config(
 
     # Training images and annotations
     'root_path': '/home/xie/Documents/datasets/holicity',
-    'train_split': '/home/xie/Documents/datasets/holicity/train.txt',
+    'train_split': 'holicity_train.tar',
 
     # Validation images and annotations.
-    'valid_split': '/home/xie/Documents/datasets/holicity/valid.txt',
+    'valid_split': 'holicity_valid.tar',
 
     # Whether or not to load GT. If this is False, eval.py quantitative evaluation won't work.
     'has_gt': True,
+
+    'train_length': 45600,
+    'valid_length': 2496,
 }
 )
 
@@ -217,9 +219,6 @@ NormalNet_base_config = Config(
                 'selected_layers': list(range(2, 4)),
             }
         ),
-
-        # Depth Decoder Settings
-        'depth': HolicityDataset,
 
         # Loss Settings
         'depth_weight': 0.5,

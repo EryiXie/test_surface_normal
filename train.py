@@ -13,7 +13,8 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 
 from data.config import cfg, MEANS, set_cfg, set_dataset
-from data.datasets import HolicityDataset, enforce_size
+#from data.datasets import HolicityDataset, enforce_size
+from webdataset_decode import HolicityDatasetParser, HolicityDataset
 from data.augmentations import SSDAugmentation, BaseTransform
 from utils.utils import SavePath, MovingAverage
 from utils import timer
@@ -203,15 +204,15 @@ def train():
     if not os.path.exists(args.save_folder):
         os.mkdir(args.save_folder)
     
-    dataset = HolicityDataset(root=cfg.dataset.root_path,
-                            split_file=cfg.dataset.train_split, 
+    dataset = HolicityDataset(root=cfg.dataset.root_path, 
+                            split_file=cfg.dataset.train_split,
                             transform=SSDAugmentation(MEANS))
 
     if args.validation_epoch > 0:
         setup_eval()
         val_dataset = HolicityDataset(root=cfg.dataset.root_path,
                             split_file=cfg.dataset.valid_split, 
-                                    transform=BaseTransform(MEANS))
+                            transform=BaseTransform(MEANS))
 
     norm_net = TestNet(cfg)
     net = norm_net
@@ -235,7 +236,6 @@ def train():
         print('Initializing weights...')
         norm_net.init_weights(backbone_path=args.save_folder + cfg.backbone.path)
     
-    #optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.decay)
     optimizer = optim.Adam(net.parameters(), betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
     criterion = Loss()
     if args.batch_alloc is not None:
@@ -263,14 +263,12 @@ def train():
     iteration = max(args.start_iter, 0)
     last_time = time.time()
 
-    epoch_size = len(dataset) // args.batch_size
+    epoch_size = cfg.dataset.train_length // args.batch_size
     num_epochs = math.ceil(cfg.max_iter / epoch_size)
     step_index = 0
 
-    data_loader = torch.utils.data.DataLoader(dataset, args.batch_size,
-                                  num_workers=args.num_workers,
-                                  shuffle=True,
-                                  pin_memory=True)
+    data_loader = torch.utils.data.DataLoader(dataset.batched(batchsize=args.batch_size), batch_size=None,
+                                  num_workers=args.num_workers)#, shuffle=True,pin_memory=True)
     
     save_path = lambda epoch, iteration: SavePath(cfg.name, epoch, iteration).get_path(root=args.save_folder)
     time_avg = MovingAverage()
