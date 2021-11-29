@@ -214,8 +214,8 @@ NormalNet_base_config = Config(
         'augment': data_augment,
         
         # Training Settings
-        'max_iter': 57000,
-        'lr_steps': (28500, 45600),
+        'max_iter': 114000,
+        'lr_steps': (57000, 85500),
         # dw' = momentum * dw - lr * (grad + decay * w)
         'lr': 1e-4,
         'momentum': 0.9,

@@ -89,8 +89,6 @@ class HolicityDataset:
         return torch.from_numpy(image).permute(2, 0, 1), torch.from_numpy(normal).permute(2, 0, 1)
 
 
-
-
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('--dataset-path',
