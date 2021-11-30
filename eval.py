@@ -53,7 +53,7 @@ def tensorborad_visual_log(epoch, iteration, net: TestNet, dataset, writer: Summ
     try:
         # Main eval loop
         for it, image_idx in enumerate(dataset_indices):
-            image, gt_normal = dataset(image_idx)
+            image, gt_normal = dataset[image_idx]
             image_ori = image[(2, 1, 0), :, :].contiguous()
             image_ori = (image_ori * std.to(image.device) + means.to(image.device)).squeeze().permute(1,2,0).cpu().numpy().astype(np.uint8)
             batch = Variable(image.unsqueeze(0)).cuda()
