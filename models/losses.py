@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from utils.utils import *
 from data.config import cfg
+from models.funs import Euclidean2Sphere
 
 
 class Loss(nn.Module):
@@ -13,15 +14,16 @@ class Loss(nn.Module):
         super(Loss, self).__init__()
 
         # Losses funcs
-        #self.normal_loss = CossimLoss()
-        self.normal_loss = nn.L1Loss()
+        #self.pts_loss = CossimLoss()
+        #self.pts_loss = nn.L1Loss()
+        self.pts_loss = circle_loss()
+
 
     def forward(self, net, normal_preds, gt_normals):
         # normal loss
         gt_normals = Variable(gt_normals, requires_grad=False)
-        #valid_mask = (gt_normals.sum() > 0) # All ground truth with 0 value is considered as invalid/non-informative pixels
-
-        point_wise_loss = self.normal_loss(normal_preds, gt_normals)
+        gt_normals = Euclidean2Sphere(gt_normals)
+        point_wise_loss = self.pts_loss(normal_preds, gt_normals)
 
         return {'point': point_wise_loss}
 
@@ -34,6 +36,13 @@ class CossimLoss(nn.Module):
         normal_error = (1 - cossim).mean()
         return normal_error
 
-
-
-
+class circle_loss(nn.Module):
+    def __init__(self):
+        super(circle_loss, self).__init__()
+    
+    def forward(self, normal_preds, gt_normals):
+        B, C, H, W = normal_preds.shape
+        term_1 = torch.abs(normal_preds - gt_normals)
+        term_2 = 2 * torch.minimum(term_1, 1 - term_1)
+        loss = (term_1 + term_2).mean()
+        return loss

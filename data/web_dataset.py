@@ -13,41 +13,6 @@ from collections.abc import Iterable
 
 from data.config import cfg, MEANS, set_cfg
 
-'''class HolicityDatasetParser:
-
-    def __init__(self, transform=None):
-        self.transform = transform
-    
-    @staticmethod
-    def get_image(sample):
-        raw = sample["img.jpg"]
-        with io.BytesIO(raw) as stream:
-            img = PIL.Image.open(stream)
-            img.load()
-            img = img.convert("RGB")
-        return np.asarray(img).astype(np.float32)[:,:,(2,1,0)]
-    @staticmethod
-    def get_normal(sample):
-        raw = sample["normal.npz"]
-        with io.BytesIO(raw) as stream:
-            normal = np.load(stream)['normal']
-        return normal
-
-    def __call__(self, sample):
-        img = self.get_image(sample)
-        normal = self.get_normal(sample)
-        if self.transform is not None:
-            img, normal = self.transform(img, normal)
-        return torch.from_numpy(img).permute(2, 0, 1), torch.from_numpy(normal).permute(2, 0, 1)
-
-
-def HolicityDataset(root: str, split_file: str, transform=None):
-    path = [os.path.join(root, split_file)]
-    datastream = wds.PytorchShardList(path, epoch_shuffle=True)
-    datastream = wds.WebDataset(datastream).shuffle(1000)
-    datastream = wds.Processor(datastream, wds.map, HolicityDatasetParser(transform=transform))
-    return datastream'''
-
 class HolicityDataset:
     def __init__(self, root: str, split_file: str = "train", transform=None):
         self.tar_path = os.path.join(root, split_file)

@@ -239,9 +239,6 @@ NormalNet_base_config = Config(
             }
         ),
 
-        # Loss Settings
-        'depth_weight': 0.5,
-
         # Image Size
         'max_size': 512,
         # Device

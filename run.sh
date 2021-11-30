@@ -12,3 +12,4 @@ python3 train.py --config=NormalNet_base_config \
 --log_folder=$LOG_FOLDER \
 --backbone_folder=$BACKBONE_FOLDER \
 --save_interval=$SAVE_INTERVAL \
+--reproductablity

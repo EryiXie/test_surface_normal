@@ -4,12 +4,9 @@ import time
 import argparse
 import datetime
 import numpy as np
-import cv2
-import webdataset as wds
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 
@@ -446,4 +443,16 @@ def log_losses(writer: SummaryWriter, losses, iteration):
     writer.add_scalar("Losses:{}".format("total"), total, iteration)
 
 if __name__ == "__main__":
+    if args.reproductablity:
+        seed = 0
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        print('************************Repoductablity Mode**************************')
+        print('****** Set seed for random, np.random, torch and cudnn as {}. *******'.format(seed))
+        print('*********************************************************************')
     train()

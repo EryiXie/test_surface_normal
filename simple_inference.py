@@ -14,6 +14,7 @@ from data.config import set_cfg, cfg
 from utils import timer
 from utils.utils import MovingAverage
 from collections import defaultdict
+from models.funs import Sphere2Euclidean
 import numpy as np
 
 
@@ -36,7 +37,7 @@ def inference_image(net: TestNet, path: str, save_path: str = None):
     frame = torch.from_numpy(frame_np).cuda().float()
     batch = FastBaseTransform()(frame.unsqueeze(0)) # Check FastBaseTransform
     batched_normal = net(batch)
-
+    batched_normal = Sphere2Euclidean(batched_normal)
     normal = batched_normal[0]
     name, ext = os.path.splitext(save_path)
     print(normal.shape)

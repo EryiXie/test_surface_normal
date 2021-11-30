@@ -13,7 +13,8 @@ class TestNet(nn.Module):
 
         self.backbone = construct_backbone(cfg.backbone)
         self.freeze_bn()
-        self.normal_decoder = NormalDecoder()
+        #self.normal_decoder = NormalDecoder()
+        self.normal_decoder = NormalDecoder_2DSphere()
 
     def forward(self, x):
         with timer.env("backbone"):
@@ -102,6 +103,58 @@ class NormalDecoder(nn.Module):
         valid_mask = torch.pow(x, 2).sum(dim=1) > 1e-3
         x = x * valid_mask.unsqueeze(dim=1).repeat(1,3,1,1)
         x = F.normalize(x, p=2, dim=1)
+        return x
+
+
+class NormalDecoder_2DSphere(nn.Module):
+    def __init__(self):
+        super(NormalDecoder_2DSphere, self).__init__()
+        self.num_output_channels = 2
+
+        self.deconv1 = nn.Sequential(
+            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(2048, 1024, kernel_size=3, stride=1, padding=0),
+            nn.BatchNorm2d(1024, eps=0.001, momentum=0.01),
+            nn.ReLU(inplace=True)
+        )
+        self.deconv2 = nn.Sequential(
+            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(2048, 512, kernel_size=3, stride=1, padding=0),
+            nn.BatchNorm2d(512, eps=0.001, momentum=0.01),
+            nn.ReLU(inplace=True)
+        )
+        self.deconv3 = nn.Sequential(
+            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(1024, 256, kernel_size=3, stride=1, padding=0),
+            nn.BatchNorm2d(256, eps=0.001, momentum=0.01),
+            nn.ReLU(inplace=True)
+        )
+        self.deconv4 = nn.Sequential(
+            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(512, 128, kernel_size=3, stride=1, padding=0),
+            nn.BatchNorm2d(128, eps=0.001, momentum=0.01),
+            nn.ReLU(inplace=True)
+        )
+        
+        self.normal_pred = nn.Sequential(
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(128, self.num_output_channels, kernel_size=3, stride=1, padding=0),
+            nn.Tanh()
+        )
+        
+    def forward(self, feature_maps):
+        feats = list(reversed(feature_maps))
+        
+        x = self.deconv1(feats[0])
+        x = self.deconv2(torch.cat([feats[1], x], dim=1))
+        x = self.deconv3(torch.cat([feats[2], x], dim=1))
+        x = self.deconv4(torch.cat([feats[3], x], dim=1))
+        x = self.normal_pred(x)
+        x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
         return x
 
 
