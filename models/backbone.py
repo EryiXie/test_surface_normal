@@ -204,7 +204,6 @@ class ResNetBackbone(nn.Module):
 
         for layer in self.layers: # for c2 to c5
             x = layer(x)
-            print(x.shape)
             outs.append(x)
 
         return tuple(outs)
