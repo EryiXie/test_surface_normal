@@ -55,7 +55,6 @@ class NormalDecoder(nn.Module):
         super(NormalDecoder, self).__init__()
         self.num_output_channels = 3
 
-
         self.deconv1 = nn.Sequential(
             torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
             nn.ReflectionPad2d(1),
@@ -100,6 +99,8 @@ class NormalDecoder(nn.Module):
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
         x = self.normal_pred(x)
         x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
+        valid_mask = torch.pow(x, 2).sum(dim=1) > 1e-3
+        x = x * valid_mask
         x = F.normalize(x, p=2, dim=1)
         return x
 
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     net = net.cuda()
     torch.set_default_tensor_type("torch.cuda.FloatTensor")
 
-    batch = torch.zeros((1, 3, 640, 640)).cuda().float()
+    batch = torch.zeros((1, 3, 512, 512)).cuda().float()
 
     y = net(batch)
     print(y.shape)
