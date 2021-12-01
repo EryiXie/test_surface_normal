@@ -143,7 +143,7 @@ class NormalDecoder_2DSphere(nn.Module):
         self.normal_pred = nn.Sequential(
             nn.ReflectionPad2d(1),
             nn.Conv2d(128, self.num_output_channels, kernel_size=3, stride=1, padding=0),
-            nn.Tanh()
+            nn.Sigmoid()
         )
         
     def forward(self, feature_maps):
@@ -153,7 +153,7 @@ class NormalDecoder_2DSphere(nn.Module):
         x = self.deconv2(torch.cat([feats[1], x], dim=1))
         x = self.deconv3(torch.cat([feats[2], x], dim=1))
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
-        x = self.normal_pred(x)*math.pi
+        x = self.normal_pred(x)
         x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
         return x
 
