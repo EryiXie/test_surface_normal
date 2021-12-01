@@ -11,7 +11,7 @@ def Euclidean2Sphere(normal_euclidean):
     theta = torch.atan2(y, x)
     phi = torch.atan2(torch.sqrt(x*x + y*y), z)
 
-    normal_2dsphere = torch.stack([theta, phi], dim=1)
+    normal_2dsphere = torch.stack([theta, phi], dim=1)/math.pi
     return normal_2dsphere
 
 def Sphere2Euclidean(normal_2dsphere):
