@@ -8,10 +8,10 @@ def Euclidean2Sphere(normal_euclidean):
     y = normal_euclidean[:, 1, :,:]
     z = normal_euclidean[:, 2, :,:]
 
-    theta = torch.atan2(y, x)
-    phi = torch.atan2(torch.sqrt(x*x + y*y), z)
+    theta = torch.atan2(y, x) / (2 * math.pi) + 0.5 # [-pi, pi] -> [0,1]
+    phi = torch.atan2(torch.sqrt(x*x + y*y), z) / math.pi #[0, pi] -> [0, 1]
 
-    normal_2dsphere = torch.stack([theta, phi], dim=1)/math.pi
+    normal_2dsphere = torch.stack([theta, phi], dim=1)
     return normal_2dsphere
 
 def Sphere2Euclidean(normal_2dsphere):
