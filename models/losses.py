@@ -15,8 +15,8 @@ class Loss(nn.Module):
 
         # Losses funcs
         #self.pts_loss = CossimLoss()
-        #self.pts_loss = nn.L1Loss()
-        self.pts_loss = circle_loss()
+        self.pts_loss = nn.L1Loss()
+        #self.pts_loss = circle_loss()
 
 
     def forward(self, net, normal_preds, gt_normals):
@@ -24,7 +24,6 @@ class Loss(nn.Module):
         gt_normals = Variable(gt_normals, requires_grad=False)
         gt_normals = Euclidean2Sphere(gt_normals)
         point_wise_loss = self.pts_loss(normal_preds, gt_normals)
-
         return {'point': point_wise_loss}
 
 class CossimLoss(nn.Module):
@@ -42,7 +41,8 @@ class circle_loss(nn.Module):
     
     def forward(self, normal_preds, gt_normals):
         B, C, H, W = normal_preds.shape
-        term_1 = torch.abs(normal_preds - gt_normals)
-        term_2 = 2 * torch.minimum(term_1, 1 - term_1)
-        loss = (term_1 + term_2).mean()
-        return loss
+        term_1 = torch.abs(normal_preds[:,1,:,:] - gt_normals[:,1,:,:])
+        term_2 = torch.abs(normal_preds[:,0,:,:] - gt_normals[:,0,:,:])
+        term_2 = 2 * torch.minimum(term_2, 1 - term_2)
+        loss = term_1 + term_2
+        return loss.mean()

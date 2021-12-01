@@ -7,7 +7,7 @@ SAVE_INTERVAL=5700
 pip install webdataset
 python3 train.py --config=NormalNet_base_config \
 --dataset=dataset_server \
---batch_size=16 \
+--batch_size=8 \
 --save_folder=$SAVE_FOLDER \
 --log_folder=$LOG_FOLDER \
 --backbone_folder=$BACKBONE_FOLDER \

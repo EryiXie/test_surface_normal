@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from models.backbone import construct_backbone
 from data.config import cfg,set_cfg
 from utils import timer
-
+import math
 torch.cuda.current_device()
 
 class TestNet(nn.Module):
@@ -153,7 +153,7 @@ class NormalDecoder_2DSphere(nn.Module):
         x = self.deconv2(torch.cat([feats[1], x], dim=1))
         x = self.deconv3(torch.cat([feats[2], x], dim=1))
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
-        x = self.normal_pred(x)
+        x = self.normal_pred(x)*math.pi
         x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
         return x
 
