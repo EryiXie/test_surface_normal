@@ -15,8 +15,8 @@ class Loss(nn.Module):
 
         # Losses funcs
         #self.pts_loss = CossimLoss()
-        self.pts_loss = nn.L1Loss()
-        #self.pts_loss = circle_loss()
+        #self.pts_loss = nn.L1Loss()
+        self.pts_loss = circle_loss()
 
 
     def forward(self, net, normal_preds, gt_normals):
