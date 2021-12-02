@@ -135,10 +135,10 @@ class NetLoss(nn.Module):
     def forward(self, batched_images, batched_gt_normals):
         """
         Args:
-            - batched_images: Tensor, each images in (C, H, W) format.
-            - batched_gt_normal: Tensor, ground truth depth map, each in (H, W) format.
+            - batched_images: Tensor, in (B, C, H, W) format.
+            - batched_gt_normal: Tensor, ground truth normal map, in (B, C, H, W) format.
         Returns:
-            - losses: a dict, losses from PlaneSegNet
+            - losses: a dict, losses from 
         """
         normal_pred = self.net(batched_images)
         losses = self.criterion(self.net, normal_pred, batched_gt_normals)
@@ -162,10 +162,8 @@ class CustomDataParallel(nn.DataParallel):
 
     def gather(self, outputs, output_device):
         out = {}
-
         for k in outputs[0]:
             out[k] = torch.stack([output[k].to(output_device) for output in outputs])
-        
         return out
     
     @torch.no_grad()

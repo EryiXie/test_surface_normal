@@ -40,7 +40,6 @@ def inference_image(net: TestNet, path: str, save_path: str = None):
     batched_normal = Sphere2Euclidean(batched_normal)
     normal = batched_normal[0]
     name, ext = os.path.splitext(save_path)
-    print(normal.shape)
     norm_np = normal.squeeze().permute(1,2,0).detach().cpu().numpy()
     norm_draw = (((norm_np + 1) / 2) * 255).astype(np.uint8)
     name, ext = os.path.splitext(save_path)
