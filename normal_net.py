@@ -13,8 +13,8 @@ class TestNet(nn.Module):
 
         self.backbone = construct_backbone(cfg.backbone)
         self.freeze_bn()
-        #self.normal_decoder = NormalDecoder()
-        self.normal_decoder = NormalDecoder_2DSphere()
+        self.normal_decoder = NormalDecoder()
+        #self.normal_decoder = NormalDecoder_2DSphere()
 
     def forward(self, x):
         with timer.env("backbone"):
@@ -100,8 +100,6 @@ class NormalDecoder(nn.Module):
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
         x = self.normal_pred(x)
         x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
-        valid_mask = torch.pow(x, 2).sum(dim=1) > 1e-3
-        x = x * valid_mask.unsqueeze(dim=1).repeat(1,3,1,1)
         x = F.normalize(x, p=2, dim=1)
         return x
 

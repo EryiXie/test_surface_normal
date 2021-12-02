@@ -427,6 +427,7 @@ def compute_validation_metrics(epoch, iteration, norm_net, val_dataset):
         norm_net.train()
     return normal_metrics, infos
 
+
 def tensorborad_visual_log(epoch, iteration, norm_net, val_dataset, writer: SummaryWriter):
     with torch.no_grad():
         norm_net.eval()
@@ -444,6 +445,7 @@ def log_losses(writer: SummaryWriter, losses, iteration):
         writer.add_scalar("Losses:{}".format(l), rounded_v, iteration)
         #total += v
     #writer.add_scalar("Losses:{}".format("total"), total, iteration)
+
 
 if __name__ == "__main__":
     if args.reproductablity:

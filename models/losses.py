@@ -14,15 +14,16 @@ class Loss(nn.Module):
         super(Loss, self).__init__()
 
         # Losses funcs
-        #self.pts_loss = nn.L1Loss()
-        self.pts_loss = circle_loss()
+        self.pts_loss = nn.L1Loss()
+        #self.pts_loss = circle_loss()
 
 
     def forward(self, net, normal_preds, gt_normals):
         # normal loss
         gt_normals = Variable(gt_normals, requires_grad=False)
-        gt_normals = Euclidean2Sphere(gt_normals)
-        point_wise_loss = self.pts_loss(normal_preds, gt_normals)
+        #gt_normals = Euclidean2Sphere(gt_normals)
+        valid_mask = (gt_normals.sum(dim=1) > 0).unsqueeze(dim=1).repeat(1,3,1,1)
+        point_wise_loss = self.pts_loss(normal_preds[valid_mask], gt_normals[valid_mask])
         return {'point': point_wise_loss}
 
 class circle_loss(nn.Module):
