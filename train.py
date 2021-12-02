@@ -370,7 +370,11 @@ def train():
             # This is done per epoch
             if args.validation_epoch > 0:
                 if epoch % args.validation_epoch == 0 :#and epoch > 0:
-                    compute_validation_metrics(epoch, iteration, norm_net, val_dataset)
+                    normal_metrics, infos = compute_validation_metrics(epoch, iteration, norm_net, val_dataset)
+                    for metrics, info in zip(normal_metrics, infos):
+                        info = round(info, 5)
+                        writer.add_scalar("Metrics:{}".format(metrics), info, epoch)
+            pass
         # Compute validation mAP after training is finished
         compute_validation_metrics(epoch, iteration, norm_net, val_dataset)
 
@@ -412,15 +416,16 @@ def setup_eval():
     eval_script.parse_args(['--no_bar', '--max_images='+str(args.validation_size)])
 
 
-def compute_validation_metrics(epoch, iteration, norm_net, val_dataset):
+def compute_validation_metrics(epoch, iteration, norm_net, val_dataset, writer: SummaryWriter):
     with torch.no_grad():
         norm_net.eval()
         start =  time.time()
         print()
         print("Computing validation metrics (this may take a while)...", flush=True)
-        eval_script.evaluate(norm_net, val_dataset, during_training=True)
+        normal_metrics, infos = eval_script.evaluate(norm_net, val_dataset, during_training=True, writer=writer)
         end = time.time()
         norm_net.train()
+    return normal_metrics, infos
 
 def tensorborad_visual_log(epoch, iteration, norm_net, val_dataset, writer: SummaryWriter):
     with torch.no_grad():
@@ -433,12 +438,12 @@ def log_losses(writer: SummaryWriter, losses, iteration):
     """
     Write losses to the tensorboard events file
     """
-    total = 0
+    #total = 0
     for l, v in losses.items():
         rounded_v = round(v.item(), 5)
         writer.add_scalar("Losses:{}".format(l), rounded_v, iteration)
-        total += v
-    writer.add_scalar("Losses:{}".format("total"), total, iteration)
+        #total += v
+    #writer.add_scalar("Losses:{}".format("total"), total, iteration)
 
 if __name__ == "__main__":
     if args.reproductablity:

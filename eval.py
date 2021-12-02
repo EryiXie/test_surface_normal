@@ -50,7 +50,7 @@ def tensorborad_visual_log(epoch, iteration, net: TestNet, dataset, writer: Summ
     random.shuffle(dataset_indices)
     dataset_indices = dataset_indices[:eval_nums]
     means = torch.Tensor(MEANS).float().cuda()[None, :, None, None]
-    std = torch.Tensor( STD ).float().cuda()[None, :, None, None]
+    std = torch.Tensor(STD).float().cuda()[None, :, None, None]
     try:
         # Main eval loop
         for it, image_idx in enumerate(dataset_indices):
@@ -73,9 +73,10 @@ def tensorborad_visual_log(epoch, iteration, net: TestNet, dataset, writer: Summ
     except KeyboardInterrupt:
         print('Stopping...')
 
-def evaluate(net: TestNet, dataset, during_training=False, eval_nums=-1):
+def evaluate(net: TestNet, dataset, during_training=False, eval_nums=-1, writer=None):
     frame_times = MovingAverage()
-    eval_nums = cfg.dataset.valid_length if args.max_images < 0 else min(args.max_images, cfg.dataset.valid_length)
+    if eval_nums < 0:
+        eval_nums = cfg.dataset.valid_length if args.max_images < 0 else min(args.max_images, cfg.dataset.valid_length)
     progress_bar = ProgressBar(30, eval_nums)
 
     print()
@@ -127,7 +128,8 @@ def evaluate(net: TestNet, dataset, during_training=False, eval_nums=-1):
             normal_metrics[0], infos[0], normal_metrics[1], infos[1], normal_metrics[2], infos[2],
             normal_metrics[3], infos[3], normal_metrics[4], infos[4], normal_metrics[5], infos[5]
         ))
-
+        print()
+        return normal_metrics, infos
     except KeyboardInterrupt:
         print('Stopping...')
 
@@ -139,11 +141,9 @@ def compute_normal_metrics(pred_normal, gt_normal, median_scaling=True):
 
     Arguments: pred_normal, gt_normal: Tensor [3, H, W], dense normal map
                median_scaling: If True, use median value to scale pred_normal
-    Returns: abs_rel, sq_rel, rmse, rmse_log, a1, a2, a3: normal metrics
-             ratio: median ration between pred_normal and gt_normal, if not median_scaling, ratio = 0
+    Returns: mean_theta, median_theta, rmse, a1, a2, a3: normal metrics
     """
-    
-    
+
     _, H, W = gt_normal.shape
     pred_normals_flat = pred_normal.view(3, H*W)
     gt_normals_flat = gt_normal.view(3, H*W)

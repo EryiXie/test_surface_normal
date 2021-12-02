@@ -31,7 +31,7 @@ class circle_loss(nn.Module):
     
     def forward(self, normal_preds, gt_normals):
         B, C, H, W = normal_preds.shape
-        valid_mask = (gt_normals.sum(dim=1) == 0).unsqueeze(dim=1)
+        valid_mask = (gt_normals.sum(dim=1) > 0).unsqueeze(dim=1)
         term_phi = torch.abs(normal_preds[:,1,:,:] - gt_normals[:,1,:,:])
         term_theta = torch.abs(normal_preds[:,0,:,:] - gt_normals[:,0,:,:])
         term_theta = 2 * torch.minimum(term_theta, 1 - term_theta)
