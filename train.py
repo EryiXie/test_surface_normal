@@ -416,13 +416,13 @@ def setup_eval():
     eval_script.parse_args(['--no_bar', '--max_images='+str(args.validation_size)])
 
 
-def compute_validation_metrics(epoch, iteration, norm_net, val_dataset, writer: SummaryWriter):
+def compute_validation_metrics(epoch, iteration, norm_net, val_dataset):
     with torch.no_grad():
         norm_net.eval()
         start =  time.time()
         print()
         print("Computing validation metrics (this may take a while)...", flush=True)
-        normal_metrics, infos = eval_script.evaluate(norm_net, val_dataset, during_training=True, writer=writer)
+        normal_metrics, infos = eval_script.evaluate(norm_net, val_dataset, during_training=True)
         end = time.time()
         norm_net.train()
     return normal_metrics, infos

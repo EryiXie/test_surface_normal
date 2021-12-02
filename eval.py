@@ -73,7 +73,7 @@ def tensorborad_visual_log(epoch, iteration, net: TestNet, dataset, writer: Summ
     except KeyboardInterrupt:
         print('Stopping...')
 
-def evaluate(net: TestNet, dataset, during_training=False, eval_nums=-1, writer=None):
+def evaluate(net: TestNet, dataset, during_training=False, eval_nums=-1):
     frame_times = MovingAverage()
     if eval_nums < 0:
         eval_nums = cfg.dataset.valid_length if args.max_images < 0 else min(args.max_images, cfg.dataset.valid_length)
