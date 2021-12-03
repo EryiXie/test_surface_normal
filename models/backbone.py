@@ -200,8 +200,10 @@ class ResNetBackbone(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
+        outs.append(x)
         x = self.maxpool(x)
 
+        
         for layer in self.layers: # for c2 to c5
             x = layer(x)
             outs.append(x)

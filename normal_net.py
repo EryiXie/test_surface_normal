@@ -13,8 +13,8 @@ class TestNet(nn.Module):
 
         self.backbone = construct_backbone(cfg.backbone)
         self.freeze_bn()
-        self.normal_decoder = NormalDecoder()
-        #self.normal_decoder = NormalDecoder_2DSphere()
+        #self.normal_decoder = NormalDecoder()
+        self.normal_decoder = NormalDecoder_2DSphere()
 
     def forward(self, x):
         with timer.env("backbone"):
@@ -137,22 +137,32 @@ class NormalDecoder_2DSphere(nn.Module):
             nn.BatchNorm2d(128, eps=0.001, momentum=0.01),
             nn.ReLU(inplace=True)
         )
+        self.deconv5 = nn.Sequential(
+            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(192, 64, kernel_size=3, stride=1, padding=0),
+            nn.BatchNorm2d(64, eps=0.001, momentum=0.01),
+            nn.ReLU(inplace=True)
+        )
         
         self.normal_pred = nn.Sequential(
             nn.ReflectionPad2d(1),
-            nn.Conv2d(128, self.num_output_channels, kernel_size=3, stride=1, padding=0),
+            nn.Conv2d(64, self.num_output_channels, kernel_size=3, stride=1, padding=0),
             nn.Sigmoid()
         )
         
     def forward(self, feature_maps):
         feats = list(reversed(feature_maps))
-        
+        for ff in feats:
+            print(ff.shape)
+        print()
         x = self.deconv1(feats[0])
         x = self.deconv2(torch.cat([feats[1], x], dim=1))
         x = self.deconv3(torch.cat([feats[2], x], dim=1))
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
+        x = self.deconv5(torch.cat([feats[4], x], dim=1))
         x = self.normal_pred(x)
-        x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
+        #x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
         return x
 
 
