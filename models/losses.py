@@ -22,8 +22,8 @@ class Loss(nn.Module):
         # normal loss
         gt_normals = Variable(gt_normals, requires_grad=False)
         gt_normals = Euclidean2Sphere(gt_normals)
-        valid_mask = (gt_normals.sum(dim=1) > 0).unsqueeze(dim=1).repeat(1,3,1,1)
-        point_wise_loss = self.pts_loss(normal_preds[valid_mask], gt_normals[valid_mask])
+        #valid_mask = (gt_normals.sum(dim=1) > 0).unsqueeze(dim=1).repeat(1,3,1,1)
+        point_wise_loss = self.pts_loss(normal_preds, gt_normals)
         return {'point': point_wise_loss}
 
 class circle_loss(nn.Module):

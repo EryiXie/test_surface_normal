@@ -153,9 +153,7 @@ class NormalDecoder_2DSphere(nn.Module):
         
     def forward(self, feature_maps):
         feats = list(reversed(feature_maps))
-        for ff in feats:
-            print(ff.shape)
-        print()
+
         x = self.deconv1(feats[0])
         x = self.deconv2(torch.cat([feats[1], x], dim=1))
         x = self.deconv3(torch.cat([feats[2], x], dim=1))
