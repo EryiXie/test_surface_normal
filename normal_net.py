@@ -13,8 +13,8 @@ class TestNet(nn.Module):
 
         self.backbone = construct_backbone(cfg.backbone)
         self.freeze_bn()
-        #self.normal_decoder = NormalDecoder()
-        self.normal_decoder = NormalDecoder_2DSphere()
+        self.normal_decoder = NormalDecoder()
+        #self.normal_decoder = NormalDecoder_2DSphere()
 
     def forward(self, x):
         with timer.env("backbone"):
@@ -87,8 +87,7 @@ class NormalDecoder(nn.Module):
         
         self.normal_pred = nn.Sequential(
             nn.ReflectionPad2d(1),
-            nn.Conv2d(128, self.num_output_channels, kernel_size=3, stride=1, padding=0),
-            nn.Tanh()
+            nn.Conv2d(128, self.num_output_channels, kernel_size=3, stride=1, padding=0)
         )
         
     def forward(self, feature_maps):
