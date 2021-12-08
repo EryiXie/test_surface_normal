@@ -36,8 +36,6 @@ class TestNet(nn.Module):
         """ Initialize weights for training. """
         # Initialize the backbone with the pretrained weights.
         self.backbone.init_backbone(backbone_path)
-
-
         for name, module in self.named_modules():
             is_conv_layer = isinstance(module, nn.Conv2d)  # or is_script_conv
             if is_conv_layer and module not in self.backbone.backbone_modules:
@@ -87,7 +85,8 @@ class NormalDecoder(nn.Module):
         
         self.normal_pred = nn.Sequential(
             nn.ReflectionPad2d(1),
-            nn.Conv2d(128, self.num_output_channels, kernel_size=3, stride=1, padding=0)
+            nn.Conv2d(128, self.num_output_channels, kernel_size=3, stride=1, padding=0),
+            nn.Tanh()
         )
         
     def forward(self, feature_maps):
@@ -99,7 +98,8 @@ class NormalDecoder(nn.Module):
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
         x = self.normal_pred(x)
         x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
-        x = F.normalize(x, p=2, dim=1)
+        #x[(x.sum(dim=1) < 1e-3).unsqueeze(dim=1).repeat(1,3,1,1)] = 0
+        #x = F.normalize(x, p=2, dim=1)
         return x
 
 
