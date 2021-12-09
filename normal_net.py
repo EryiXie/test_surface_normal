@@ -52,39 +52,34 @@ class TestNet(nn.Module):
 class NormalDecoder_2DSphere(nn.Module):
     def __init__(self):
         super(NormalDecoder_2DSphere, self).__init__()
-        self.num_output_channels = 3
+        self.num_output_channels = 2
 
         self.deconv1 = nn.Sequential(
             torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(2048, 1024, kernel_size=3, stride=1, padding=0),
+            nn.Conv2d(2048, 1024, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(1024, eps=0.001, momentum=0.01),
             nn.ReLU(inplace=True)
         )
         self.deconv2 = nn.Sequential(
             torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(2048, 512, kernel_size=3, stride=1, padding=0),
+            nn.Conv2d(2048, 512, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(512, eps=0.001, momentum=0.01),
             nn.ReLU(inplace=True)
         )
         self.deconv3 = nn.Sequential(
             torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(1024, 256, kernel_size=3, stride=1, padding=0),
+            nn.Conv2d(1024, 256, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(256, eps=0.001, momentum=0.01),
             nn.ReLU(inplace=True)
         )
         self.deconv4 = nn.Sequential(
             torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(512, 128, kernel_size=3, stride=1, padding=0),
+            nn.Conv2d(512, 128, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(128, eps=0.001, momentum=0.01),
             nn.ReLU(inplace=True)
         )
         
         self.normal_pred = nn.Sequential(
-            nn.ReflectionPad2d(1),
             nn.Conv2d(64, self.num_output_channels, kernel_size=3, stride=1, padding=0),
             nn.Sigmoid()
         )

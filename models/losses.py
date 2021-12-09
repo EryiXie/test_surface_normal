@@ -35,6 +35,5 @@ class circle_loss(nn.Module):
         term_phi = torch.abs(normal_preds[:,1,:,:] - gt_normals[:,1,:,:])
         term_theta = torch.abs(normal_preds[:,0,:,:] - gt_normals[:,0,:,:])
         term_theta = 2 * torch.minimum(term_theta, 1 - term_theta)
-        term_valid = torch.abs(normal_preds[:,2,:,:] - valid_mask_gt)
-        loss = term_phi + term_theta + term_valid
+        loss = term_phi + term_theta
         return loss.mean()
