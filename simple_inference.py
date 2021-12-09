@@ -19,7 +19,7 @@ import numpy as np
 
 
 def parse_args(argv=None):
-    parser = argparse.ArgumentParser(description="DepNet Net Inference")
+    parser = argparse.ArgumentParser(description="NormalNet Inference")
     parser.add_argument("--trained_model",default=None, type=str, help='Trained state_dict file path to open. If "interrupt", this will open the interrupt file.')
     parser.add_argument("--config", default="NormalNet_base_config", help="The config object to use.")
     # Inference Mode
@@ -39,7 +39,6 @@ def inference_image(net: TestNet, path: str, save_path: str = None):
     batched_normal = net(batch)
     batched_normal = Sphere2Euclidean(batched_normal)
     normal = batched_normal[0]
-    name, ext = os.path.splitext(save_path)
     norm_np = normal.squeeze().permute(1,2,0).detach().cpu().numpy()
     norm_draw = (((norm_np + 1) / 2) * 255).astype(np.uint8)
     name, ext = os.path.splitext(save_path)
