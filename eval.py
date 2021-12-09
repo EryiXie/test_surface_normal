@@ -60,7 +60,7 @@ def tensorborad_visual_log(epoch, iteration, net: TestNet, dataset, writer: Summ
             batch = Variable(image.unsqueeze(0)).cuda()
 
             batched_result = net(batch) # if batch_size = 1, result = batched_result[0]
-            #batched_result = Sphere2Euclidean(batched_result)
+            batched_result = Sphere2Euclidean(batched_result)
             norm_np = batched_result[0].squeeze().permute(1,2,0).cpu().numpy()
             norm_draw = (((norm_np + 1) / 2) * 255).astype(np.uint8)
             #gt_norm_normalize_np = gt_normal.squeeze().permute(1,2,0).cpu().numpy()
@@ -96,7 +96,7 @@ def evaluate(net: TestNet, dataset, during_training=False, eval_nums=-1):
             batch = Variable(image.unsqueeze(0)).cuda()
 
             batched_result = net(batch) # if batch_size = 1, result = batched_result[0]
-            #batched_result = Sphere2Euclidean(batched_result)
+            batched_result = Sphere2Euclidean(batched_result)
             pred_normal = batched_result[0]
             pred_normal = pred_normal.squeeze(dim=0)
 

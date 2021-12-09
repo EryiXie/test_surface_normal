@@ -200,7 +200,6 @@ class ResNetBackbone(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        outs.append(x)
         x = self.maxpool(x)
 
         

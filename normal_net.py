@@ -98,8 +98,6 @@ class NormalDecoder(nn.Module):
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
         x = self.normal_pred(x)
         x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
-        #x[(x.sum(dim=1) < 1e-3).unsqueeze(dim=1).repeat(1,3,1,1)] = 0
-        #x = F.normalize(x, p=2, dim=1)
         return x
 
 
@@ -136,13 +134,6 @@ class NormalDecoder_2DSphere(nn.Module):
             nn.BatchNorm2d(128, eps=0.001, momentum=0.01),
             nn.ReLU(inplace=True)
         )
-        self.deconv5 = nn.Sequential(
-            torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(192, 64, kernel_size=3, stride=1, padding=0),
-            nn.BatchNorm2d(64, eps=0.001, momentum=0.01),
-            nn.ReLU(inplace=True)
-        )
         
         self.normal_pred = nn.Sequential(
             nn.ReflectionPad2d(1),
@@ -152,14 +143,13 @@ class NormalDecoder_2DSphere(nn.Module):
         
     def forward(self, feature_maps):
         feats = list(reversed(feature_maps))
-
+        
         x = self.deconv1(feats[0])
         x = self.deconv2(torch.cat([feats[1], x], dim=1))
         x = self.deconv3(torch.cat([feats[2], x], dim=1))
         x = self.deconv4(torch.cat([feats[3], x], dim=1))
-        x = self.deconv5(torch.cat([feats[4], x], dim=1))
         x = self.normal_pred(x)
-        #x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
+        x = F.interpolate(x, scale_factor=2,align_corners=False, mode='bilinear')
         return x
 
 
