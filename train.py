@@ -114,7 +114,7 @@ if args.batch_size // torch.cuda.device_count() < 6:
         print('Per-GPU batch size is less than the recommended limit for batch norm. Disabling batch norm.')
     cfg.freeze_bn = True
 
-loss_types = ['point', 'gradient', 'smooth'] # mask loss, conf loss, depth loss
+loss_types = ['pts', 'seg', 'smooth'] # mask loss, conf loss, depth loss
 
 if torch.cuda.is_available():
     torch.set_default_tensor_type('torch.cuda.FloatTensor')
@@ -439,12 +439,12 @@ def log_losses(writer: SummaryWriter, losses, iteration):
     """
     Write losses to the tensorboard events file
     """
-    #total = 0
+    total = 0
     for l, v in losses.items():
         rounded_v = round(v.item(), 5)
         writer.add_scalar("Losses:{}".format(l), rounded_v, iteration)
-        #total += v
-    #writer.add_scalar("Losses:{}".format("total"), total, iteration)
+        total += v
+    writer.add_scalar("Losses:{}".format("total"), total, iteration)
 
 
 if __name__ == "__main__":

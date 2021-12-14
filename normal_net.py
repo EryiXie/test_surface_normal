@@ -13,8 +13,8 @@ class TestNet(nn.Module):
 
         self.backbone = construct_backbone(cfg.backbone)
         self.freeze_bn()
-        self.normal_decoder = NormalDecoder()
-        #self.normal_decoder = NormalDecoder_2DSphere()
+        #self.normal_decoder = NormalDecoder()
+        self.normal_decoder = NormalDecoder_2DSphere()
 
     def forward(self, x):
         with timer.env("backbone"):
@@ -52,7 +52,7 @@ class TestNet(nn.Module):
 class NormalDecoder_2DSphere(nn.Module):
     def __init__(self):
         super(NormalDecoder_2DSphere, self).__init__()
-        self.num_output_channels = 2
+        self.num_output_channels = 3
 
         self.deconv1 = nn.Sequential(
             torch.nn.Upsample(scale_factor=2, mode='nearest', align_corners=None),
@@ -80,7 +80,7 @@ class NormalDecoder_2DSphere(nn.Module):
         )
         
         self.normal_pred = nn.Sequential(
-            nn.Conv2d(64, self.num_output_channels, kernel_size=3, stride=1, padding=0),
+            nn.Conv2d(128, self.num_output_channels, kernel_size=3, stride=1, padding=1),
             nn.Sigmoid()
         )
         

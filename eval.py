@@ -124,7 +124,7 @@ def evaluate(net: TestNet, dataset, during_training=False, eval_nums=-1):
         infos = np.asarray(infos, dtype=np.double)
         infos = infos.sum(axis=0)/infos.shape[0]
         print("Normal Metrics:")
-        print("{}: {}, {}: {}, {}: {}, {}: {}, {}: {}, {}: {}".format(
+        print("{}: {:.3f}, {}: {:.3f}, {}: {:.3f}, {}: {:.3f}, {}: {:.3f}, {}: {:.3f}".format(
             normal_metrics[0], infos[0], normal_metrics[1], infos[1], normal_metrics[2], infos[2],
             normal_metrics[3], infos[3], normal_metrics[4], infos[4], normal_metrics[5], infos[5]
         ))
@@ -147,7 +147,7 @@ def compute_normal_metrics(pred_normal, gt_normal, median_scaling=True):
     _, H, W = gt_normal.shape
     pred_normals_flat = pred_normal.view(3, H*W)
     gt_normals_flat = gt_normal.view(3, H*W)
-    valid_mask = (gt_normals_flat.sum(dim=0) > 0).logical_and(pred_normals_flat.sum(dim=0) > 0)
+    valid_mask = (gt_normals_flat.sum(dim=0) > 0)#.logical_and(pred_normals_flat.sum(dim=0) > 0)
     pred_normals_flat = pred_normals_flat[:,valid_mask]
     gt_normals_flat = gt_normals_flat[:,valid_mask]
 
@@ -194,8 +194,7 @@ if __name__ == '__main__':
         
         dataset = HolicityDataset(root=cfg.dataset.root_path,
                             split_file=cfg.dataset.valid_split,
-                            transform=BaseTransform(MEANS), has_gt=cfg.dataset.has_gt)
-        
+                            transform=BaseTransform(MEANS))
         print("Loading model...", end='')
         net = TestNet(cfg)
         net.load_weights(args.trained_model)
