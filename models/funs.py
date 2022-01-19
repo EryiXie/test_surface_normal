@@ -17,8 +17,8 @@ def Euclidean2Sphere(normal_euclidean):
 def Sphere2Euclidean(normal_2dsphere):
     theta = (normal_2dsphere[:, 0, :, :] - 0.5)*2*math.pi
     phi = normal_2dsphere[:, 1, :, :]*math.pi
-    
-    valid_mask = torch.logical_or((theta > 1e-2), (phi > 1e-2)).unsqueeze(dim=1).repeat(1,3,1,1)
+    valid_mask = normal_2dsphere[:, 2, :, :].unsqueeze(dim=1).repeat(1,3,1,1)
+    #valid_mask = torch.logical_or((theta > 1e-2), (phi > 1e-2)).unsqueeze(dim=1).repeat(1,3,1,1)
     x = torch.sin(phi)*torch.cos(theta)
     y = torch.sin(phi)*torch.sin(theta)
     z = torch.cos(phi)
