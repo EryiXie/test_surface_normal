@@ -2,7 +2,7 @@
 SAVE_FOLDER="/netscratch/xie/normal_weights/"
 LOG_FOLDER="/netscratch/xie/logs/"
 BACKBONE_FOLDER="/netscratch/xie/weights/"
-SAVE_INTERVAL=5700
+SAVE_INTERVAL=4738
 
 pip install webdataset
 python3 train.py --config=NormalNet_base_config \

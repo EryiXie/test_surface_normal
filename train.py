@@ -63,7 +63,7 @@ parser.add_argument('--gamma', default=None, type=float,
                     help='For each lr step, what to multiply the lr by. Leave as None to read this from the config.')
 
 # You might not need customize these
-parser.add_argument('--num_workers', default=2, type=int,
+parser.add_argument('--num_workers', default=1, type=int,
                     help='Number of workers used in dataloading')
 parser.add_argument('--save_interval', default=11400, type=int,
                     help='The number of iterations between saving the model.')
@@ -262,7 +262,7 @@ def train():
     num_epochs = math.ceil(cfg.max_iter / epoch_size)
     step_index = 0
     
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True, generator=torch.Generator(device='cuda'))
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True, drop_last=True, generator=torch.Generator(device='cuda'))
    
     save_path = lambda epoch, iteration: SavePath(cfg.name, epoch, iteration).get_path(root=args.save_folder)
     time_avg = MovingAverage()

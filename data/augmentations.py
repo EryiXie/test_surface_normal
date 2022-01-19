@@ -233,7 +233,6 @@ class RandomRotation(object):
         self.mu = mu
         self.sigma = sigma
         self.angle_sample = np.random.normal(self.mu, self.sigma, 10000)
-        print(len(self.angle_sample))
 
     def __call__(self, image, normal):
         height, width, _ = image.shape
