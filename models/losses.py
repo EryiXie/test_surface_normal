@@ -21,16 +21,15 @@ class Loss(nn.Module):
     def forward(self, net, normal_preds, gt_normals):
         # normal loss
         gt_normals = Variable(gt_normals, requires_grad=False)
-        valid_mask_gt = torch.norm(gt_normals, p=2, dim=1)
         gt_normals = Euclidean2Sphere(gt_normals)
-        point_wise_loss = self.pts_loss(normal_preds, gt_normals, valid_mask_gt)
+        point_wise_loss = self.pts_loss(normal_preds, gt_normals)
         return {'point': point_wise_loss}
 
 class circle_loss(nn.Module):
     def __init__(self):
         super(circle_loss, self).__init__()
     
-    def forward(self, normal_preds, gt_normals, valid_mask_gt):
+    def forward(self, normal_preds, gt_normals):
         B, C, H, W = normal_preds.shape
         term_phi = torch.abs(normal_preds[:,1,:,:] - gt_normals[:,1,:,:])
         term_theta = torch.abs(normal_preds[:,0,:,:] - gt_normals[:,0,:,:])

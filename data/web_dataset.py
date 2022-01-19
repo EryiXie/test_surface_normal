@@ -55,6 +55,7 @@ class HolicityDataset:
 
 
 if __name__ == "__main__":
+    from data.augmentations import SSDAugmentation
     parser = ArgumentParser()
     parser.add_argument('--dataset-path',
                         type=str,
@@ -64,16 +65,19 @@ if __name__ == "__main__":
     set_cfg('NormalNet_base_config')
     args = parser.parse_args()
 
-    dataset = HolicityDataset(root=cfg.dataset.root_path, split_file=cfg.dataset.valid_split)
-    dataloader = torch.utils.data.DataLoader(dataset, num_workers=4, batch_size=4)
+    dataset = HolicityDataset(root=cfg.dataset.root_path, split_file=cfg.dataset.valid_split, transform=SSDAugmentation())
+    dataloader = torch.utils.data.DataLoader(dataset, num_workers=1, batch_size=4)
+    i = 0
     for images, normals in dataloader:
-        img_show = images[0].squeeze().permute(1,2,0).cpu().numpy().astype(np.uint8)
+        img_show = images[0].squeeze()[(2, 1, 0), :, :].contiguous().permute(1,2,0).cpu().numpy().astype(np.uint8)
         print(img_show.shape)
         cv2.imshow('raw', img_show)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-        print(images.shape, normals.shape)
-        break
+        #print(images.shape, normals.shape)
+        i = i + 1
+        if i>3:
+            break
     
 
 

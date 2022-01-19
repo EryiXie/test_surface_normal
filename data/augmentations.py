@@ -195,12 +195,10 @@ class RandomBrightness(object):
 
 
 class ToCV2Image(object):
-    # TODO: not redefined yet
     def __call__(self, tensor):
         return tensor.cpu().numpy().astype(np.float32).transpose((1, 2, 0))
 
 class ToTensor(object):
-    # TODO: not redefined yet
     def __call__(self, cvimage):
         return torch.from_numpy(cvimage.astype(np.float32)).permute(2, 0, 1)
 
@@ -209,7 +207,7 @@ class RandomMirror(object):
         _, width, _ = image.shape
         if random.randint(2):
             image = image[:, ::-1]
-            normal = normal[:, ::-1] # TODO: Is 1 channel the same as 3 channels? 
+            normal = normal[:, ::-1]
         return image, normal
 
 
@@ -229,6 +227,22 @@ class RandomRot90(object):
         image = np.rot90(image,k)
         normal = np.rot90(normal,k)
         return image, normal
+
+class RandomRotation(object):
+    def __init__(self, mu=0, sigma=10):
+        self.mu = mu
+        self.sigma = sigma
+        self.angle_sample = np.random.normal(self.mu, self.sigma, 10000)
+        print(len(self.angle_sample))
+
+    def __call__(self, image, normal):
+        height, width, _ = image.shape
+        angle = np.random.choice(self.angle_sample)
+        rotate_matrix = cv2.getRotationMatrix2D(center=(int(height/2 - 1),int(width/2 - 1)), angle=angle, scale=1)
+        rotated_image = cv2.warpAffine(src=image, M=rotate_matrix, dsize=(height, width))
+        rotated_norm = cv2.warpAffine(src=normal, M=rotate_matrix, dsize=(height, width))
+
+        return rotated_image, rotated_norm
 
 
 class SwapChannels(object):
@@ -350,31 +364,6 @@ class RandomMotionBlur(object):
             return image, normal
 
 
-class RandomGaussianNoise(object):
-    def __init__(self, mean=0, var=0.0002):
-        self.mean = mean
-        self.var = var
-
-    def __call__(self, image, normal):
-
-        if random.randint(2) :
-            #cvimage = image.cpu().numpy().astype(np.float32).transpose((1, 2, 0))
-            image = np.array(image / 255, dtype=float)
-            var =  random.randint(5,11)*self.var
-            noise = np.random.normal(self.mean, var ** 0.5, image.shape)
-            out = image + noise
-            if out.min() < 0:
-                low_clip = -1.
-            else:
-                low_clip = 0.
-            out = np.clip(out, low_clip, 1.0)
-            out = np.uint8(out * 255)
-            #tensorimage = torch.from_numpy(out.astype(np.float32)).permute(2, 0, 1)
-            return out, normal
-        else:
-            return image, normal
-
-
 ###########################################
 #  Augmentation/Transformation in Queue  #
 ##########################################
@@ -397,7 +386,7 @@ class SSDAugmentation(object):
             #enable_if(cfg.augment.random_mirror, RandomMirror()),
             #enable_if(cfg.augment.random_flip, RandomFlip()),
             #enable_if(cfg.augment.random_rot90, RandomRot90()),
-            #enable_if(cfg.augment.gaussian_noise, RandomGaussianNoise()),
+            enable_if(cfg.augment.random_rotation, RandomRotation()),
             Resize(resize_gt=True),
             BackboneTransform(cfg.backbone.transform, mean, std, 'BGR')
         ])

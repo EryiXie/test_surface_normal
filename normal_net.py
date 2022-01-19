@@ -13,8 +13,8 @@ class TestNet(nn.Module):
 
         self.backbone = construct_backbone(cfg.backbone)
         self.freeze_bn()
-        self.normal_decoder = NormalDecoder()
-        #self.normal_decoder = NormalDecoder_2DSphere()
+        #self.normal_decoder = NormalDecoder()
+        self.normal_decoder = NormalDecoder_2DSphere()
 
     def forward(self, x):
         with timer.env("backbone"):

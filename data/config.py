@@ -138,6 +138,8 @@ data_augment = Config(
     'motion_blur': True,
     # With Gaussian nosie
     'gaussian_noise': False,
+    # random rotation
+    'random_rotation': True,
     }
 )
 
