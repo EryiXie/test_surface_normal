@@ -96,8 +96,7 @@ def evaluate(net: TestNet, dataset, during_training=False, eval_nums=-1):
             batch = Variable(image.unsqueeze(0)).cuda()
 
             batched_result = net(batch) # if batch_size = 1, result = batched_result[0]
-            batched_result = Sphere2Euclidean(batched_result)
-            pred_normal = batched_result[0]
+            pred_normal = Sphere2Euclidean(batched_result)[0]
             pred_normal = pred_normal.squeeze(dim=0)
 
             gt_normal = gt_normal.cuda()
@@ -153,15 +152,18 @@ def compute_normal_metrics(pred_normal, gt_normal, median_scaling=True):
 
     theta = torch.acos(F.cosine_similarity(gt_normals_flat, pred_normals_flat, dim=0))/math.pi * 180
     theta = theta[torch.logical_not(theta.isnan())]
-    mean_theta = torch.mean(theta)
-    median_theta = torch.median(theta)
+    if theta.shape[0] > 0:
+        mean_theta = torch.mean(theta)
+        median_theta = torch.median(theta)
 
-    a1 = (theta < 11.25 ).type(torch.cuda.DoubleTensor).mean()
-    a2 = (theta < 22.5  ).type(torch.cuda.DoubleTensor).mean()
-    a3 = (theta < 30    ).type(torch.cuda.DoubleTensor).mean()
+        a1 = (theta < 11.25 ).type(torch.cuda.DoubleTensor).mean()
+        a2 = (theta < 22.5  ).type(torch.cuda.DoubleTensor).mean()
+        a3 = (theta < 30    ).type(torch.cuda.DoubleTensor).mean()
 
-    rmse = theta ** 2
-    rmse = torch.sqrt(rmse.mean())
+        rmse = theta ** 2
+        rmse = torch.sqrt(rmse.mean())
+    else:
+        mean_theta, median_theta, rmse, a1, a2, a3 = 0, 0, 0, 0, 0, 0
 
     return mean_theta, median_theta, rmse, a1, a2, a3
 
