@@ -229,7 +229,7 @@ def train():
             args.start_iter = SavePath.from_str(args.resume).iteration
     else:
         print('Initializing weights...')
-        norm_net.init_weights(backbone_path=args.save_folder + cfg.backbone.path)
+        norm_net.init_weights(backbone_path=args.backbone_folder + cfg.backbone.path)
     
     optimizer = optim.Adam(net.parameters(), betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
     criterion = Loss()

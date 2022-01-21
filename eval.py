@@ -63,11 +63,11 @@ def tensorborad_visual_log(epoch, iteration, net: TestNet, dataset, writer: Summ
             batched_result = Sphere2Euclidean(batched_result)
             norm_np = batched_result[0].squeeze().permute(1,2,0).cpu().numpy()
             norm_draw = (((norm_np + 1) / 2) * 255).astype(np.uint8)
-            #gt_norm_normalize_np = gt_normal.squeeze().permute(1,2,0).cpu().numpy()
-            #gt_norm_normalize_draw = (((gt_norm_normalize_np + 1) / 2) * 255).astype(np.uint8)
+            gt_norm_normalize_np = gt_normal.squeeze().permute(1,2,0).cpu().numpy()
+            gt_norm_normalize_draw = (((gt_norm_normalize_np + 1) / 2) * 255).astype(np.uint8)
 
-            #writer.add_image("{}/Input/GT".format(it), image_ori, iteration, dataformats='HWC')
-            #writer.add_image("{}/Normal/GT".format(it), gt_norm_normalize_draw, iteration, dataformats='HWC')
+            writer.add_image("{}/Input/GT".format(it), image_ori, iteration, dataformats='HWC')
+            writer.add_image("{}/Normal/GT".format(it), gt_norm_normalize_draw, iteration, dataformats='HWC')
             writer.add_image("{}/Normal/Pred".format(it), norm_draw, iteration, dataformats='HWC')
 
     except KeyboardInterrupt:
